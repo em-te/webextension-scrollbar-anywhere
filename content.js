@@ -11,6 +11,8 @@ let state = OFF;
 let dirLock = null;
 let startTime = 0;
 
+let multiply = 1;
+
 let mTarget = null;  //e.target
 
 let mScreenX = 0;  //e.screenX
@@ -135,6 +137,10 @@ function onMouseMove(e) {
       (e.screenY > mScreenY ? DOWN : UP) :
       (e.screenX > mScreenX ? RIGHT : LEFT);
   
+    if (multiply === -1) {
+      dirLock = dirLock === UP ? DOWN : dirLock === DOWN ? UP : dirLock === LEFT ? RIGHT : LEFT;
+    }
+    
     mTarget = findScrollable(mTarget, dirLock);
 
     mPageX = mTarget.scrollLeft;
@@ -145,7 +151,7 @@ function onMouseMove(e) {
 
   if (dirLock === UP || dirLock === DOWN) {
     const ratioY = (e.screenY - mScreenY) / window.innerHeight * 0.9;
-    const top = mPageY + (mScrollHeight * ratioY);
+    const top = mPageY + multiply*(mScrollHeight * ratioY);
 
     const height = mTarget.clientHeight;
     if (top < 0 || top + height > mScrollHeight) {
@@ -157,8 +163,8 @@ function onMouseMove(e) {
 
   } else {
     const ratioX = (e.screenX - mScreenX) / window.innerWidth * 0.9;
-    const left = mPageY + (mScrollWidth * ratioX);
-
+    const left = mPageX + multiply*(mScrollWidth * ratioX);
+    
     const width = mTarget.clientWidth;
     if (left < 0 || left + width > mScrollWidth) {
       mScreenX = e.screenX;
@@ -168,3 +174,11 @@ function onMouseMove(e) {
     mTarget.scrollLeft = left;
   }
 }
+
+chrome.storage.local.get({likeTouch: false}, ({likeTouch}) => {
+  multiply = likeTouch ? -1 : 1;
+});
+
+chrome.storage.onChanged.addListener(({likeTouch}) => {
+  multiply = likeTouch.newValue ? -1 : 1;
+});
