@@ -158,9 +158,9 @@ function onMouseMove(e) {
     startTime = Date.now();
     state = ACTIVE;
 
-    dirLock = absY >= absX ?
-      (e.screenY > mScreenY ? DOWN : UP) :
-      (e.screenX > mScreenX ? RIGHT : LEFT);
+    dirLock = absY < absX ?
+    (e.screenX > mScreenX ? RIGHT : LEFT) :
+    (e.screenY > mScreenY ? DOWN : UP);
 
     if (multiply === -1) {
       //reverse scroll direction
@@ -169,6 +169,8 @@ function onMouseMove(e) {
 
     mTarget = findScrollable(mTarget, dirLock);
 
+    mScreenX = e.screenX;
+    mScreenY = e.screenY;
     mPageX = mTarget.scrollLeft;
     mPageY = mTarget.scrollTop;
     mScrollWidth = mTarget.scrollWidth;
@@ -183,8 +185,13 @@ function onMouseMove(e) {
 
     const height = mTarget.clientHeight;
     if (top < 0 || top + height > mScrollHeight) {
+      //if the scroll gesture exceeds the max value, treat the 
+      //new gesture position as the new base value so we can
+      //scroll in the opposite direction immediately on reverse
       mScreenY = e.screenY;
       mPageY = mTarget.scrollTop;
+      //cancel the escape key function because we have re-based
+      //the position and lost the original value
       window.removeEventListener("keydown", onKeyDown, false);
     }
     mTarget.scrollTop = top;
@@ -205,11 +212,9 @@ function onMouseMove(e) {
 
 function onKeyDown(e) {
   if (e.key === "Escape") {
-    if (mTarget) {
-      //restore the original scroll position on Escape
-      mTarget.scrollLeft = mPageX;
-      mTarget.scrollTop = mPageY;
-    }
+    //restore the original scroll position on Escape
+    mTarget.scrollLeft = mPageX;
+    mTarget.scrollTop = mPageY;
     e.preventDefault();
     clearAllEvents();
   }
