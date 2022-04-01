@@ -80,7 +80,7 @@ function clearAllEvents() {
 function findScrollable(n, dir) {
   //we find the first element that is scrollable and is not already
   //scrolled to the maximum extent in the pre-determined direction.
-  //If we cannot find one, we return the document element.
+  //If we cannot find one, we return null.
   if (dir === UP || dir === DOWN) {
     do {
       let visible = n.clientHeight;
@@ -139,6 +139,8 @@ function setCursor(type, dir) {
     if (dir === "none") {
       transLayer.style.cursor = "not-allowed";
 
+      //we use a different cursor when scrolling the root node and
+      //when scrolling a DIV
     } else if (type === "doc") {
       transLayer.style.cursor = 
         dir === UP || dir === DOWN ? "ns-resize" : "ew-resize";
@@ -174,8 +176,8 @@ function onMouseMove(e) {
     state = ACTIVE;
 
     dirLock = absY < absX ?
-    (e.screenX > mScreenX ? RIGHT : LEFT) :
-    (e.screenY > mScreenY ? DOWN : UP);
+      (e.screenX > mScreenX ? RIGHT : LEFT) :
+      (e.screenY > mScreenY ? DOWN : UP);
 
     if (multiply === -1) {
       //reverse scroll direction
@@ -208,6 +210,8 @@ function onMouseMove(e) {
     mScrollWidth = mTarget.scrollWidth;
     mScrollHeight = mTarget.scrollHeight;
 
+    //turn off the smooth scrolling behavior because
+    //it is too jaggedy
     mTarget.style.scrollBehavior = "auto";
   }
 
