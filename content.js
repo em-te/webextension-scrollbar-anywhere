@@ -116,7 +116,7 @@ function findScrollable(n, dir) {
       }
     } while ((n = n.parentElement) && n);
   }
-  return document.scrollingElement;
+  return null;
 }
 
 function setTransparentLayer(show) {
@@ -131,6 +131,21 @@ function setTransparentLayer(show) {
   } else if (transLayer) {
     transLayer.parentNode.removeChild(transLayer);
     transLayer = null;
+  }
+}
+
+function setCursor(type, dir) {
+  if (transLayer) {
+    if (dir === "none") {
+      transLayer.style.cursor = "not-allowed";
+
+    } else if (type === "doc") {
+      transLayer.style.cursor = 
+        dir === UP || dir === DOWN ? "ns-resize" : "ew-resize";
+    } else {
+      transLayer.style.cursor = 
+        dir === UP || dir === DOWN ? "row-resize" : "col-resize";
+    }
   }
 }
 
@@ -169,6 +184,23 @@ function onMouseMove(e) {
 
     mTarget = findScrollable(mTarget, dirLock);
 
+    setTransparentLayer(true);
+
+    if (mTarget) {
+      setCursor("inner", dirLock);
+
+    } else {
+      mTarget = document.scrollingElement;
+
+      if (dirLock === UP || dirLock === DOWN) {
+        const noScroll = (mTarget.scrollTop === 0 && mTarget.clientHeight > mTarget.scrollHeight - 5);
+        setCursor("doc", noScroll ? "none" : dirLock);
+      } else {
+        const noScroll = (mTarget.scrollLeft === 0 && mTarget.clientWidth > mTarget.scrollWidth - 5);
+        setCursor("doc", noScroll ? "none" : dirLock);
+      }
+    }
+
     mScreenX = e.screenX;
     mScreenY = e.screenY;
     mPageX = mTarget.scrollLeft;
@@ -176,7 +208,7 @@ function onMouseMove(e) {
     mScrollWidth = mTarget.scrollWidth;
     mScrollHeight = mTarget.scrollHeight;
 
-    setTransparentLayer(true);
+    mTarget.style.scrollBehavior = "auto";
   }
 
   if (dirLock === UP || dirLock === DOWN) {
